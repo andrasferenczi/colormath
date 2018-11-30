@@ -51,19 +51,28 @@ fun createPalettePreview(palettes: List<Palette>): String {
 }
 
 fun <C : ConvertibleColor> createColorPalette(
-        dark: RGB,
-        middle: RGB,
-        light: RGB,
+        c100: RGB,
+        c900: RGB,
+        convert: RGB.() -> C
+): Palette {
+    return createColorPalette(
+            c100,
+            Mixer.mix(c100.convert(), c900, 0.5),
+            c900,
+            convert
+    )
+}
+
+fun <C : ConvertibleColor> createColorPalette(
+        c100: RGB,
+        c500: RGB,
+        c900: RGB,
         convert: RGB.() -> C
 ): Palette {
 
     val half = 0.5
 
     fun mixHalf(from: RGB, to: RGB) = Mixer.mix(from.convert(), to, half)
-
-    val c100 = light
-    val c500 = middle
-    val c900 = dark
 
     val c300 = mixHalf(c100, c500)
 
@@ -76,7 +85,7 @@ fun <C : ConvertibleColor> createColorPalette(
     val c800 = mixHalf(c700, c900)
 
     return Palette(
-            dark.convert()::class.java.simpleName,
+            c100.convert()::class.java.simpleName,
             listOf(
                     c100, c200, c300, c400, c500, c600, c700, c800, c900
             )
@@ -85,23 +94,32 @@ fun <C : ConvertibleColor> createColorPalette(
 
 fun main(args: Array<String>) {
 
-    val c100 = RGB("#ffcc00")
-    val c500 = RGB("#00ccff")
-    val c900 = RGB("#004422")
+//    val c100 = RGB("#ffcc00")
+//    // val c500 = RGB("#00ccff")
+//    val c900 = RGB("#004422")
+
+
+    // Red
+    val c100 = RGB(252, 232, 232)
+    val c900 = RGB(95, 23, 23)
+
+    // Green
+//    val c100 = RGB(231, 255, 254)
+//    val c900 = RGB(17, 68, 67)
 
     val blendings = listOf<(RGB) -> ConvertibleColor>(
             { it.toCMYK() },
+            { it.toHSV() },
             { it.toRGB() },
             { it.toLAB() },
             { it.toXYZ() },
-            { it.toHSV() },
             { it.toHSL() }
     )
 
     val palettes = blendings.map {
         createColorPalette(
                 c100,
-                c500,
+//                c500,
                 c900,
                 it
         )
