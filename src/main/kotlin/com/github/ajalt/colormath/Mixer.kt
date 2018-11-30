@@ -2,7 +2,32 @@ package com.github.ajalt.colormath
 
 object Mixer {
 
-    fun mix(a: CMYK, b: CMYK, percent: Double): CMYK {
+    /**
+     * Mixes two colors by weighting them component-wise. The first color parameter type
+     * determines how the colors are going to be mixed.
+     *
+     * E.g.: if first is RGB, then red, green and blue channels will be calculated separately.
+     * E.g.: if first is HSV, then hue, saturation and value are calculate separately and then converted back to RGB.
+     *
+     * Second color is converted to match the first color's type.
+     *
+     * If there is no applicable mixing for the first color type, an error is thrown.
+     */
+    fun mix(a: ConvertibleColor, b: ConvertibleColor, percent: Double): RGB {
+        requirePercent(percent)
+
+        return when (a) {
+            is CMYK -> mixCMYK(a, b.toCMYK(), percent).toRGB()
+            is HSV -> mixHSV(a, b.toHSV(), percent).toRGB()
+            is HSL -> mixHSL(a, b.toHSL(), percent).toRGB()
+            is LAB -> mixLAB(a, b.toLAB(), percent).toRGB()
+            is RGB -> mixRGB(a, b.toRGB(), percent)
+            is XYZ -> mixXYZ(a, b.toXYZ(), percent).toRGB()
+            else -> throw IllegalArgumentException("Mix calculation for class ${a::class} is not supported.")
+        }
+    }
+
+    private fun mixCMYK(a: CMYK, b: CMYK, percent: Double): CMYK {
         requirePercent(percent)
 
         return CMYK(
@@ -13,7 +38,7 @@ object Mixer {
         )
     }
 
-    fun mix(a: HSV, b: HSV, percent: Double): HSV {
+    private fun mixHSV(a: HSV, b: HSV, percent: Double): HSV {
         requirePercent(percent)
 
         return HSV(
@@ -23,7 +48,7 @@ object Mixer {
         )
     }
 
-    fun mix(a: HSL, b: HSL, percent: Double): HSL {
+    private fun mixHSL(a: HSL, b: HSL, percent: Double): HSL {
         requirePercent(percent)
 
         return HSL(
@@ -33,7 +58,7 @@ object Mixer {
         )
     }
 
-    fun mix(a: LAB, b: LAB, percent: Double): LAB {
+    private fun mixLAB(a: LAB, b: LAB, percent: Double): LAB {
         requirePercent(percent)
 
         return LAB(
@@ -43,7 +68,7 @@ object Mixer {
         )
     }
 
-    fun mix(a: RGB, b: RGB, percent: Double): RGB {
+    private fun mixRGB(a: RGB, b: RGB, percent: Double): RGB {
         requirePercent(percent)
 
         return RGB(
@@ -53,7 +78,7 @@ object Mixer {
         )
     }
 
-    fun mix(a: XYZ, b: XYZ, percent: Double): XYZ {
+    private fun mixXYZ(a: XYZ, b: XYZ, percent: Double): XYZ {
         requirePercent(percent)
 
         return XYZ(
