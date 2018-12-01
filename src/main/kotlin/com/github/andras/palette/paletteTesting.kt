@@ -6,12 +6,16 @@ import com.github.ajalt.colormath.RGB
 import kotlinx.html.*
 import kotlinx.html.stream.appendHTML
 import java.io.File
+import java.awt.Toolkit.getDefaultToolkit
+import javafx.scene.input.Clipboard.getSystemClipboard
+import java.awt.Toolkit
+import java.awt.datatransfer.StringSelection
 
 
 data class Palette(
         val name: String,
         val colors: List<RGB>
-)
+) : List<RGB> by colors
 
 fun createPalettePreview(palettes: List<Palette>): String {
     val colorCount = palettes.getOrNull(0)?.colors?.size ?: 0
@@ -92,7 +96,28 @@ fun <C : ConvertibleColor> createColorPalette(
     )
 }
 
+fun createColorPaletteXML(prefix: String, palette: Palette, addPaletteName: Boolean = false): List<String> {
+    return palette.mapIndexed { index: Int, color: RGB ->
+        val number = (index + 1) * 100
+
+        if (addPaletteName) {
+            "<color name=\"${prefix}_${palette.name}_$number\">${color.toHex(withNumberSign = true)}</color>"
+        } else {
+            "<color name=\"${prefix}_$number\">${color.toHex(withNumberSign = true)}</color>"
+        }
+
+    }
+}
+
+fun String.copyToClipboard(): Unit {
+    val selection = StringSelection(this)
+    val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+    clipboard.setContents(selection, selection)
+}
+
 fun main(args: Array<String>) {
+
+    val prefix = "warning"
 
 //    val c100 = RGB("#ffcc00")
 //    // val c500 = RGB("#00ccff")
@@ -100,12 +125,25 @@ fun main(args: Array<String>) {
 
 
     // Red
-    val c100 = RGB(252, 232, 232)
-    val c900 = RGB(95, 23, 23)
+//    val c100 = RGB(252, 232, 232)
+//    val c900 = RGB(95, 23, 23)
 
     // Green
 //    val c100 = RGB(231, 255, 254)
 //    val c900 = RGB(17, 68, 67)
+
+    // Yellow - warning
+    val c100 = RGB(255, 252, 244)
+    val c900 = RGB(97, 70, 20)
+
+    // Grey
+//    val c100 = RGB(248, 249, 250)
+//    val c900 = RGB(33, 37, 42)
+
+    // Orange primary
+//    val c100 = RGB("#FFF3E0")
+//    val c900 = RGB("#EF6C00")
+
 
     val blendings = listOf<(RGB) -> ConvertibleColor>(
             { it.toCMYK() },
@@ -125,14 +163,21 @@ fun main(args: Array<String>) {
         )
     }
 
-    val html = createPalettePreview(palettes)
+    val cmykXml = palettes.filter { it.name.equals("cmyk", ignoreCase = true) }.first()
 
+    createColorPaletteXML(prefix, cmykXml)
+            .joinToString(separator = "\r\n") { it }
+            .copyToClipboard()
+
+    println("XML has been copied to clipboard.")
+
+
+    val html = createPalettePreview(palettes)
     val file = File("palette_preview.html")
 
     println("Html content is:\n$html\n")
 
     file.writeText(html)
     println("File written to ${file.absolutePath}")
-
 
 }
