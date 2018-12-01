@@ -42,4 +42,6 @@ interface ConvertibleColor {
 
     /** Convert this color to CIE LAB */
     fun toLAB(): LAB = toRGB().toLAB()
+
+    fun toYUV(): YUV = toRGB().toYUV()
 }

@@ -179,6 +179,10 @@ data class RGB(val r: Int, val g: Int, val b: Int) : ConvertibleColor {
         return Ansi256(code)
     }
 
+    override fun toYUV(): YUV {
+        return YUV.fromRgb(this)
+    }
+
     override fun toRGB() = this
 }
 

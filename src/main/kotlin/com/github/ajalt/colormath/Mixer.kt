@@ -17,6 +17,7 @@ object Mixer {
         requirePercent(percent)
 
         return when (a) {
+            is YUV -> mixYUV(a, b.toYUV(), percent).toRGB()
             is CMYK -> mixCMYK(a, b.toCMYK(), percent).toRGB()
             is HSV -> mixHSV(a, b.toHSV(), percent).toRGB()
             is HSL -> mixHSL(a, b.toHSL(), percent).toRGB()
@@ -25,6 +26,16 @@ object Mixer {
             is XYZ -> mixXYZ(a, b.toXYZ(), percent).toRGB()
             else -> throw IllegalArgumentException("Mix calculation for class ${a::class} is not supported.")
         }
+    }
+
+    private fun mixYUV(a: YUV, b: YUV, percent: Double): YUV {
+        requirePercent(percent)
+
+        return YUV(
+                y = (a.y..b.y).mix(percent),
+                u = (a.u..b.u).mix(percent),
+                v = (a.v..b.v).mix(percent)
+        )
     }
 
     private fun mixCMYK(a: CMYK, b: CMYK, percent: Double): CMYK {
